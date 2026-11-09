@@ -1,0 +1,18 @@
+# Generated data
+data/agencies.db
+out/
+
+# Real downloads and registers (keep samples in data/sample/)
+data/*.zip
+data/*.csv
+data/registers/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets
+.env

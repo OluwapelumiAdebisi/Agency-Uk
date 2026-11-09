@@ -1,0 +1,68 @@
+# Pipeline configuration. Edit freely.
+
+database: data/agencies.db
+
+companies_house:
+  # SIC codes that mark a company as a staffing / employment agency.
+  agency_sic_codes:
+    "78100": Employment placement agency
+    "78109": Other activities of employment placement agencies
+    "78200": Temporary employment agency
+    "78300": Other human resources provision
+  # Sector-specific SIC codes. Companies with these supply staff directly
+  # (e.g. a security company that hires guards) - many newcomers get work this way.
+  sector_sic_codes:
+    "80100": security          # Private security activities
+    "80200": security          # Security systems service activities
+    "81210": cleaning          # General cleaning of buildings
+    "81221": cleaning          # Window cleaning
+    "81222": cleaning          # Specialised cleaning
+    "81223": cleaning          # Furnace and chimney cleaning
+    "81229": cleaning          # Other building and industrial cleaning
+    "81299": cleaning          # Other cleaning services
+    "43999": construction      # Other specialised construction activities
+  # Only keep live companies
+  keep_statuses: ["Active"]
+
+# Keyword rules used to tag an agency with sectors from its name.
+sector_keywords:
+  security: [security, guard, guarding, protection, door supervisor, sia, patrol, steward, events security]
+  cleaning: [cleaning, cleaners, clean, hygiene, janitorial, facilities]
+  construction: [construction, build, building, labour, labor, site, civil, trades, scaffold]
+  hospitality: [hospitality, catering, chef, bar, hotel, events, waiting staff]
+  warehouse_logistics: [warehouse, logistics, driver, drivers, distribution, fulfilment, industrial]
+  care: [care, carers, healthcare, nursing, support worker, domiciliary]
+
+google_places:
+  # Set the key in the environment, never in this file:  export GOOGLE_PLACES_API_KEY=...
+  api_key_env: GOOGLE_PLACES_API_KEY
+  region_code: GB
+  # Discovery queries: {sector} x {city}
+  query_templates:
+    - "{sector} recruitment agency in {city}"
+    - "{sector} staffing agency in {city}"
+  cities: [Birmingham]
+  sectors: [security, cleaning, construction, hospitality, warehouse]
+  max_pages_per_query: 3     # 20 results per page
+
+matching:
+  name_threshold: 90         # fuzzy score to accept on name alone
+  name_threshold_with_postcode: 80   # lower bar if the postcode district matches
+
+scoring:
+  weights:
+    years_trading_max: 20     # 1 point per year, capped
+    accreditation:
+      sia_acs: 25
+      rec: 15
+      safecontractor: 10
+      chas: 10
+      constructionline: 10
+      glaa: 10
+    accreditation_cap: 45
+    on_google_maps: 5
+    has_multiple_sic_signals: 5
+  penalties:
+    accounts_overdue: 20
+    confirmation_statement_overdue: 15
+    incorporated_under_1_year: 10
