@@ -59,6 +59,24 @@ def test_normalise():
     assert name_score("Shieldline Security", "SHIELDLINE SECURITY LIMITED") == 100
 
 
+def test_blank_and_short_lines_are_skipped(tmp_path, cfg):
+    # The real Companies House file ends with a blank line; a short/blank row must be
+    # skipped, not crash the load (regression for the CompanyName KeyError).
+    header = "CompanyName, CompanyNumber,CompanyStatus,SICCode.SicText_1\n"
+    body = (
+        '"GOOD STAFFING LTD","99999999","Active","78200 - Temporary employment agency activities"\n'
+        "\n"                      # blank line
+        '"TRUNCATED"\n'           # short row, missing most columns
+    )
+    p = tmp_path / "mini.csv"
+    p.write_text(header + body)
+    c = connect(str(tmp_path / "mini.db"))
+    stats = companies_house.load(c, str(p), cfg)
+    assert stats["kept"] == 1
+    names = {r["name"] for r in c.execute("SELECT name FROM agencies")}
+    assert names == {"GOOD STAFFING LTD"}
+
+
 def test_companies_house_filtering(conn):
     names = {r["name"] for r in conn.execute("SELECT name FROM agencies")}
     assert "ACME SOFTWARE LTD" not in names          # wrong SIC
