@@ -57,6 +57,22 @@
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/11223344"
   },
   {
+    "company_number": "20202020",
+    "name": "BRUM TEACHING SUPPLY LTD",
+    "town": "BIRMINGHAM",
+    "postcode": "B4 6AF",
+    "sectors": [
+      "education"
+    ],
+    "accreditations": [],
+    "trust_score": 9,
+    "flags": [
+      "green: trading 9+ years"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/20202020"
+  },
+  {
     "company_number": "12345678",
     "name": "MIDLANDS LABOUR & TRADES LTD",
     "town": "BIRMINGHAM",

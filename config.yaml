@@ -24,6 +24,12 @@ companies_house:
     "85600": education         # Educational support services (supply teaching, TAs)
   # Only keep live companies
   keep_statuses: ["Active"]
+  # A company with a SECTOR SIC but no employment-agency SIC is kept only if its name
+  # presents it as an agency / labour supplier. This catches sector-specialist agencies
+  # (e.g. "YSA Supply Limited", filed under education 85600) while dropping plain builders,
+  # cleaners and care homes. "supply" (singular) is matched, but "supplies" is not, so
+  # product merchants ("Building Supplies Ltd") stay out.
+  agency_name_signals: [recruitment, recruit, staffing, staff, agency, agencies, personnel, resourcing, workforce, placements, labour, supply]
 
 # Keyword rules used to tag an agency with sectors from its name.
 sector_keywords:
