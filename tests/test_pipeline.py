@@ -92,6 +92,17 @@ def test_education_sector(cfg):
     assert "education" not in dict(sectors_for("Midlands Cleaning Supply Ltd", ["81210"], cfg))
 
 
+def test_expanded_keyword_coverage(cfg):
+    from pipeline.classify import sectors_for
+    sec = lambda name: set(dict(sectors_for(name, ["78200"], cfg)))  # a plain 78200 agency
+    assert "warehouse_logistics" in sec("Prime HGV Drivers Ltd")
+    assert "care" in sec("CityCare Nursing Ltd")
+    assert "hospitality" in sec("Elite Chefs Recruitment Ltd")
+    assert "construction" in sec("Premier Scaffolding Labour Ltd")
+    # A truly generic name still falls through to 'general'
+    assert sec("Peoplefirst Recruitment Ltd") == {"general"}
+
+
 def test_places_matching(conn, cfg, monkeypatch):
     monkeypatch.setenv("GOOGLE_PLACES_API_KEY", "test")
     monkeypatch.setattr(places.time, "sleep", lambda s: None)
