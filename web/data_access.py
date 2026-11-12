@@ -27,6 +27,7 @@ SECTOR_LABELS = {
     "hospitality": "Hospitality & bar",
     "warehouse_logistics": "Warehouse & driving",
     "care": "Care",
+    "education": "Education",
     "general": "General staffing",
 }
 

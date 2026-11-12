@@ -76,6 +76,18 @@ def test_sectors(conn):
     assert "hospitality" in sec("15999888")
 
 
+def test_education_sector(cfg):
+    from pipeline.classify import sectors_for
+    # Caught by the education SIC even when the name gives nothing away (e.g. "YSA Supply Ltd")
+    by_sic = dict(sectors_for("YSA Supply Limited", ["85600"], cfg))
+    assert "education" in by_sic
+    # Caught by a name keyword when filed under a plain employment-agency SIC
+    by_name = dict(sectors_for("Bright Classroom Teaching Supply Ltd", ["78200"], cfg))
+    assert "education" in by_name
+    # "supply" alone must NOT trigger education (avoids catching e.g. a cleaning supplier)
+    assert "education" not in dict(sectors_for("Midlands Cleaning Supply Ltd", ["81210"], cfg))
+
+
 def test_places_matching(conn, cfg, monkeypatch):
     monkeypatch.setenv("GOOGLE_PLACES_API_KEY", "test")
     monkeypatch.setattr(places.time, "sleep", lambda s: None)
