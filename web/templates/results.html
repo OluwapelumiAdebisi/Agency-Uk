@@ -7,11 +7,14 @@
     {% if f.sector %}{{ sector_label(f.sector) }} agencies{% else %}Staffing agencies{% endif %}
     {% if f.city %} in {{ f.city }}{% endif %}
   </h1>
-  <p class="results-sub">{{ total }} {{ 'agency' if total == 1 else 'agencies' }}. Every fact below comes from a public record. <a href="{{ url_for('home') }}#guides">How we verify</a></p>
+  <p class="results-sub">{{ total }} {{ 'agency' if total == 1 else 'agencies' }}{% if f.q %} matching &ldquo;{{ f.q }}&rdquo;{% endif %}. Every fact below comes from a public record. <a href="{{ url_for('home') }}#guides">How we verify</a></p>
 
   <div class="results-layout">
     <aside class="filters" aria-label="Filters">
       <form method="get" action="{{ url_for('results') }}">
+        <label class="filter-field">Search by name
+          <input type="search" name="q" value="{{ f.q }}" placeholder="Agency name">
+        </label>
         <label class="filter-field">Type of work
           <select name="sector">
             <option value="">Any</option>

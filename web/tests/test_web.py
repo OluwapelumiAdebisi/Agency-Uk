@@ -89,6 +89,15 @@ def test_filter_by_city(ags):
     assert da.filter_agencies(ags, city="Leeds") == []
 
 
+def test_search_by_name(ags, client):
+    hits = da.filter_agencies(ags, query="shield")
+    assert [a["company_number"] for a in hits] == ["09876543"]
+    assert da.filter_agencies(ags, query="B16")  # matches on postcode too
+    assert da.filter_agencies(ags, query="nonexistent-agency-xyz") == []
+    body = client.get("/agencies?q=shield").get_data(as_text=True)
+    assert "Shieldline" in body and "matching" in body
+
+
 def test_routes_ok(client):
     assert client.get("/").status_code == 200
     assert client.get("/agencies?sector=security").status_code == 200

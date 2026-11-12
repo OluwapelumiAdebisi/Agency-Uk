@@ -8,6 +8,11 @@
 
   <form class="search-bar" action="{{ url_for('results') }}" method="get">
     <div class="search-field">
+      <label for="q">Search by name</label>
+      <input id="q" name="q" type="search" placeholder="Agency name (optional)">
+    </div>
+    <div class="search-divider"></div>
+    <div class="search-field">
       <label for="sector">Type of work</label>
       <select id="sector" name="sector">
         <option value="">Any</option>
