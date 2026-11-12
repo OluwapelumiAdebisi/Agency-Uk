@@ -71,8 +71,11 @@ def load(conn, path: str, cfg: dict) -> dict:
 
     for row in _open_rows(path):
         stats["scanned"] += 1
+        number = row.get("CompanyNumber", "")
+        name = row.get("CompanyName", "")
+        if not number or not name:
+            continue  # blank or malformed line (the bulk file ends with one)
         sics = _sic_codes(row)
-        name = row["CompanyName"]
         # Agencies-first keep rule:
         #   - an employment-agency SIC (78100/78109/78200/78300) is always an agency, OR
         #   - a SECTOR SIC plus an agency-like name (recruitment/staffing/labour/supply...)
@@ -86,7 +89,6 @@ def load(conn, path: str, cfg: dict) -> dict:
         if row.get("CompanyStatus") not in keep:
             continue
 
-        number = row["CompanyNumber"]
         postcode = row.get("RegAddress.PostCode", "")
         conn.execute(
             """INSERT INTO agencies (company_number, name, name_normalised, status,
