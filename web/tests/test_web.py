@@ -73,6 +73,22 @@ def test_filter_by_sector_and_accreditation(ags):
     assert accredited_first[0]["has_accreditation"] is True
 
 
+def test_cities_are_major_and_deduped(ags):
+    # Every sample agency is a Birmingham postcode (B1, B3, B5, B11, B16),
+    # so the whole list collapses to a single "Birmingham" option.
+    assert da.all_cities(ags) == ["Birmingham"]
+    assert da.major_city("LS1 4AB") == "Leeds"
+    assert da.major_city("WF1 1AA") == "Leeds"       # Wakefield folds into Leeds
+    assert da.major_city("EC1A 1BB") == "London"
+    assert da.major_city("ZZ9 9ZZ") is None          # unknown area -> no city
+    assert da.postcode_area("B5 6DY") == "B"
+
+
+def test_filter_by_city(ags):
+    assert len(da.filter_agencies(ags, city="Birmingham")) == len(ags)
+    assert da.filter_agencies(ags, city="Leeds") == []
+
+
 def test_routes_ok(client):
     assert client.get("/").status_code == 200
     assert client.get("/agencies?sector=security").status_code == 200
