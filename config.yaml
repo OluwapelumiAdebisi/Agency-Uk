@@ -21,6 +21,7 @@ companies_house:
     "81229": cleaning          # Other building and industrial cleaning
     "81299": cleaning          # Other cleaning services
     "43999": construction      # Other specialised construction activities
+    "85600": education         # Educational support services (supply teaching, TAs)
   # Only keep live companies
   keep_statuses: ["Active"]
 
@@ -32,6 +33,8 @@ sector_keywords:
   hospitality: [hospitality, catering, chef, bar, hotel, events, waiting staff]
   warehouse_logistics: [warehouse, logistics, driver, drivers, distribution, fulfilment, industrial]
   care: [care, carers, healthcare, nursing, support worker, domiciliary]
+  # Note: bare "supply"/"school"/"sen" are deliberately excluded - too many false matches.
+  education: [education, teaching, teacher, teachers, tutor, tutoring, teaching assistant, supply teacher, supply teaching, cover supervisor, early years, invigilator, classroom]
 
 google_places:
   # Set the key in the environment, never in this file:  export GOOGLE_PLACES_API_KEY=...
@@ -42,7 +45,7 @@ google_places:
     - "{sector} recruitment agency in {city}"
     - "{sector} staffing agency in {city}"
   cities: [Birmingham]
-  sectors: [security, cleaning, construction, hospitality, warehouse]
+  sectors: [security, cleaning, construction, hospitality, warehouse, education]
   max_pages_per_query: 3     # 20 results per page
 
 matching:
