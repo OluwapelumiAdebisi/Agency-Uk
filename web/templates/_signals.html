@@ -1,0 +1,28 @@
+{% macro signal_badges(signals) %}
+<div class="signals">
+  {% for s in signals %}
+    {% if s.source and s.source != '#' %}
+      <a class="signal signal-{{ s.tone }}" href="{{ s.source }}" target="_blank" rel="noopener">
+        <span aria-hidden="true">{{ s.icon }}</span>{{ s.label }}
+      </a>
+    {% else %}
+      <span class="signal signal-{{ s.tone }}"><span aria-hidden="true">{{ s.icon }}</span>{{ s.label }}</span>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro rating_tile(a, small=false) %}
+<div class="rating-tile {{ 'rating-sm' if small else '' }}">
+  {% if a.rating and a.rating.rating %}
+    <span class="rating-value"><span class="star" aria-hidden="true">★</span> {{ '%.1f'|format(a.rating.rating) }}</span>
+    <span class="rating-note">Google{% if a.rating.count %} · {{ a.rating.count }} reviews{% endif %}</span>
+  {% elif a.google_place_id %}
+    <span class="rating-value rating-muted"><span class="star" aria-hidden="true">★</span> —</span>
+    <span class="rating-note">Rating loads live</span>
+  {% else %}
+    <span class="rating-value rating-muted">—</span>
+    <span class="rating-note">No Google listing yet</span>
+  {% endif %}
+</div>
+{% endmacro %}

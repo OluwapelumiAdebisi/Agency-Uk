@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_signals.html" import signal_badges, rating_tile %}
+{% block title %}{{ a.name|title }} – Agency UK{% endblock %}
+{% block content %}
+<main class="wrap agency-page">
+  <p class="crumbs"><a href="{{ url_for('results') }}">← Back to results</a></p>
+
+  <div class="agency-grid">
+    <div class="agency-col">
+
+      <section class="card header-card">
+        <div class="header-top">
+          <div class="header-id">
+            <div class="chips">
+              {% for s in a.sector_labels %}<span class="chip">{{ s }}</span>{% endfor %}
+            </div>
+            <h1>{{ a.name|title }}</h1>
+            <p class="muted">{{ a.town|title }}{% if a.postcode %} {{ a.postcode }}{% endif %} · Company no. {{ a.company_number }}</p>
+          </div>
+          {{ rating_tile(a) }}
+        </div>
+        {% if a.signals %}<div class="header-signals">{{ signal_badges(a.signals) }}</div>{% endif %}
+      </section>
+
+      <section class="card">
+        <h2>What we've verified</h2>
+        <ul class="verify-list">
+          {% for s in a.signals %}
+          <li>
+            <span class="verify-icon verify-{{ s.tone }}" aria-hidden="true">{{ s.icon }}</span>
+            <span class="verify-label">{{ s.label }}</span>
+            {% if s.source and s.source != '#' %}<a class="verify-src" href="{{ s.source }}" target="_blank" rel="noopener">source</a>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="muted small">Each fact is from a public record:
+          <a href="{{ a.companies_house_url }}" target="_blank" rel="noopener">Companies House</a>,
+          the relevant accreditation register, and the live Google rating.</p>
+      </section>
+
+      <section class="card">
+        <h2>What workers say</h2>
+        {% if a.rating and a.rating.rating %}
+          <p>Rated <strong>{{ '%.1f'|format(a.rating.rating) }}</strong> on Google{% if a.rating.count %} from {{ a.rating.count }} reviews{% endif %}.
+            {% if a.rating.url %}<a href="{{ a.rating.url }}" target="_blank" rel="noopener">Read them on Google</a>.{% endif %}</p>
+        {% else %}
+          <p class="muted">No Google rating available yet. Reviews load live from Google when there are any.</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="agency-aside">
+      <section class="card">
+        <h2 class="small-head">Apply to this agency</h2>
+        <p class="muted small">Send your profile — licences, right to work and availability — in one tap.</p>
+        <button class="btn btn-primary block" type="button">Send my profile</button>
+        <a class="btn btn-outline block" href="#">Register on their website ↗</a>
+      </section>
+      <section class="card notice-fee compact">
+        <span class="fee-title">Never pay for a job</span>
+        <span class="small">Agencies can't charge you to find you work. If this one asks for money, tell us.</span>
+        <a href="#">Report this agency</a>
+      </section>
+      <section class="card">
+        <span class="fee-title">Is this your agency?</span>
+        <span class="small muted">Claim the listing to add your sectors, open roles and registration link.</span>
+        <a href="#">Claim listing</a>
+      </section>
+    </aside>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+{% if a.google_place_id and not a.rating %}
+<script>
+// Rating wasn't ready at render time; fetch it live and fill the tiles.
+fetch("{{ url_for('api_rating', place_id=a.google_place_id) }}")
+  .then(r => r.json())
+  .then(d => {
+    if (!d || !d.rating) return;
+    document.querySelectorAll('.rating-value').forEach(el => {
+      el.classList.remove('rating-muted');
+      el.innerHTML = '<span class="star" aria-hidden="true">★</span> ' + d.rating.toFixed(1);
+    });
+  })
+  .catch(() => {});
+</script>
+{% endif %}
+{% endblock %}

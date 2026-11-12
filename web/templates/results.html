@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_signals.html" import signal_badges, rating_tile %}
+{% block title %}Agencies{% if f.sector %} – {{ sector_label(f.sector) }}{% endif %} – Agency UK{% endblock %}
+{% block content %}
+<main class="wrap results-page">
+  <h1 class="results-title">
+    {% if f.sector %}{{ sector_label(f.sector) }} agencies{% else %}Staffing agencies{% endif %}
+    {% if f.city %} in {{ f.city }}{% endif %}
+  </h1>
+  <p class="results-sub">{{ total }} {{ 'agency' if total == 1 else 'agencies' }}. Every fact below comes from a public record. <a href="{{ url_for('home') }}#guides">How we verify</a></p>
+
+  <div class="results-layout">
+    <aside class="filters" aria-label="Filters">
+      <form method="get" action="{{ url_for('results') }}">
+        <label class="filter-field">Type of work
+          <select name="sector">
+            <option value="">Any</option>
+            {% for s in sectors %}<option value="{{ s }}" {{ 'selected' if s == f.sector }}>{{ sector_label(s) }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="filter-field">City
+          <select name="city">
+            <option value="">Anywhere</option>
+            {% for c in cities %}<option value="{{ c }}" {{ 'selected' if c == f.city }}>{{ c }}</option>{% endfor %}
+          </select>
+        </label>
+        <fieldset>
+          <legend>Accreditation</legend>
+          <label class="radio"><input type="radio" name="accreditation" value="" {{ 'checked' if not f.accreditation }}> Any</label>
+          <label class="radio"><input type="radio" name="accreditation" value="sia_acs" {{ 'checked' if f.accreditation == 'sia_acs' }}> SIA Approved</label>
+          <label class="radio"><input type="radio" name="accreditation" value="rec" {{ 'checked' if f.accreditation == 'rec' }}> REC member</label>
+        </fieldset>
+        <fieldset>
+          <legend>Companies House</legend>
+          <label class="check-row"><input type="checkbox" name="accounts_ok" {{ 'checked' if f.accounts_ok }}> Accounts up to date</label>
+        </fieldset>
+        <fieldset>
+          <legend>Google</legend>
+          <label class="check-row"><input type="checkbox" name="has_rating" {{ 'checked' if f.has_rating }}> Has a Google listing</label>
+        </fieldset>
+        <button type="submit" class="btn btn-primary filter-apply">Apply filters</button>
+      </form>
+    </aside>
+
+    <section class="results-list" aria-label="Results">
+      {% for a in agencies %}
+      <article class="agency-card">
+        <div class="agency-main">
+          <a class="agency-name" href="{{ url_for('agency', company_number=a.company_number) }}">{{ a.name|title }}</a>
+          <span class="agency-meta">{{ a.postcode }}{% if a.sector_labels %} · {{ a.sector_labels|join(', ') }}{% endif %}</span>
+          {{ signal_badges(a.signals) }}
+        </div>
+        <div class="agency-side">
+          {{ rating_tile(a, small=true) }}
+          <a class="btn btn-primary" href="{{ url_for('agency', company_number=a.company_number) }}">View &amp; apply</a>
+        </div>
+      </article>
+      {% else %}
+      <p class="empty">No agencies match these filters yet. Try widening them.</p>
+      {% endfor %}
+    </section>
+  </div>
+</main>
+{% endblock %}
