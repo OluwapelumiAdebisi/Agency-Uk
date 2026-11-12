@@ -1,0 +1,20 @@
+# One-click deploy config for Render (https://render.com).
+# In Render: New + > Blueprint > point at this repo. It reads this file.
+services:
+  - type: web
+    name: agency-uk
+    runtime: python
+    plan: free
+    buildCommand: pip install -r web/requirements.txt
+    startCommand: gunicorn --chdir web app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      # The site reads web/data/agencies.json if it's committed; otherwise the sample.
+      # Set this to override the path, or leave it unset to use the default.
+      - key: AGENCIES_JSON
+        sync: false
+      # Optional: live Google ratings. Add your key in the Render dashboard
+      # (Environment tab) so it isn't committed to the repo.
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false

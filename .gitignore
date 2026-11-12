@@ -6,6 +6,10 @@ out/
 data/*.zip
 data/*.csv
 data/registers/
+# The Companies House bulk file, wherever it lands
+*.zip
+BasicCompanyData*
+# Note: web/data/agencies.json is deliberately NOT ignored — commit it to deploy with real data.
 
 # Python
 __pycache__/

@@ -17,10 +17,17 @@ import data_access as da
 import ratings as rt
 
 BASE = Path(__file__).parent
-DEFAULT_JSON = BASE / "data" / "agencies.sample.json"
+DATA_DIR = BASE / "data"
+
+
+def _default_json():
+    """Prefer a real export if one is committed/present, else fall back to the sample."""
+    real = DATA_DIR / "agencies.json"
+    return str(real if real.exists() else DATA_DIR / "agencies.sample.json")
+
 
 app = Flask(__name__)
-app.config["AGENCIES_JSON"] = os.environ.get("AGENCIES_JSON", str(DEFAULT_JSON))
+app.config["AGENCIES_JSON"] = os.environ.get("AGENCIES_JSON", _default_json())
 
 
 def agencies():
