@@ -18,7 +18,8 @@
     <div class="search-field">
       <label for="city">City</label>
       <select id="city" name="city">
-        {% for c in cities %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        <option value="">Any city</option>
+        {% for c in cities %}<option value="{{ c }}" {{ 'selected' if c == 'Birmingham' }}>{{ c }}</option>{% endfor %}
       </select>
     </div>
     <button type="submit" class="btn btn-primary search-go">

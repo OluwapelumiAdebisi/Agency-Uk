@@ -30,6 +30,67 @@ SECTOR_LABELS = {
     "general": "General staffing",
 }
 
+# Map each UK postcode AREA (the leading letters of a postcode) to a major city.
+# Deriving the city from the postcode instead of the free-text "post town" gives one
+# clean label per city, folds surrounding towns into the nearest big city, and removes
+# the duplicate / misspelt town names that come straight from Companies House.
+# Edit the groupings here to fold more or fewer areas together.
+CITY_BY_AREA = {
+    # London and Greater London boroughs
+    "E": "London", "EC": "London", "N": "London", "NW": "London", "SE": "London",
+    "SW": "London", "W": "London", "WC": "London", "BR": "London", "CR": "London",
+    "DA": "London", "EN": "London", "HA": "London", "IG": "London", "KT": "London",
+    "RM": "London", "SM": "London", "TW": "London", "UB": "London", "WD": "London",
+    # West Midlands -> Birmingham
+    "B": "Birmingham", "DY": "Birmingham", "WS": "Birmingham", "WV": "Birmingham",
+    "CV": "Coventry",
+    # Greater Manchester -> Manchester
+    "M": "Manchester", "OL": "Manchester", "BL": "Manchester", "SK": "Manchester", "WN": "Manchester",
+    "WA": "Warrington",
+    # Merseyside / North West
+    "L": "Liverpool", "CH": "Chester", "PR": "Preston", "FY": "Blackpool", "BB": "Blackburn",
+    "LA": "Lancaster", "CA": "Carlisle",
+    # Yorkshire
+    "LS": "Leeds", "WF": "Leeds", "BD": "Bradford", "HD": "Huddersfield", "HX": "Halifax",
+    "HG": "Harrogate", "YO": "York", "S": "Sheffield", "DN": "Doncaster", "HU": "Hull",
+    # East Midlands
+    "DE": "Derby", "NG": "Nottingham", "LE": "Leicester", "LN": "Lincoln", "NN": "Northampton",
+    # East of England
+    "PE": "Peterborough", "CB": "Cambridge", "NR": "Norwich", "IP": "Ipswich", "CO": "Colchester",
+    "CM": "Chelmsford", "SS": "Southend-on-Sea", "LU": "Luton", "AL": "St Albans", "SG": "Stevenage",
+    "HP": "Hemel Hempstead", "MK": "Milton Keynes",
+    # South East
+    "OX": "Oxford", "RG": "Reading", "SL": "Slough", "GU": "Guildford", "BN": "Brighton",
+    "RH": "Crawley", "TN": "Tunbridge Wells", "CT": "Canterbury", "ME": "Medway",
+    "SO": "Southampton", "PO": "Portsmouth", "BH": "Bournemouth", "DT": "Dorchester",
+    # South West
+    "BS": "Bristol", "BA": "Bath", "GL": "Gloucester", "SN": "Swindon", "SP": "Salisbury",
+    "TA": "Taunton", "EX": "Exeter", "PL": "Plymouth", "TQ": "Torquay", "TR": "Truro",
+    # West Midlands / Welsh borders
+    "ST": "Stoke-on-Trent", "TF": "Telford", "SY": "Shrewsbury", "HR": "Hereford", "WR": "Worcester",
+    # North East
+    "NE": "Newcastle upon Tyne", "SR": "Sunderland", "DH": "Durham", "TS": "Middlesbrough", "DL": "Darlington",
+    # Wales
+    "CF": "Cardiff", "NP": "Newport", "SA": "Swansea", "LL": "Wrexham", "LD": "Llandrindod Wells",
+    # Scotland
+    "G": "Glasgow", "PA": "Glasgow", "ML": "Glasgow", "KA": "Glasgow", "EH": "Edinburgh",
+    "AB": "Aberdeen", "DD": "Dundee", "IV": "Inverness", "PH": "Perth", "FK": "Falkirk",
+    "KY": "Kirkcaldy",
+    # Northern Ireland
+    "BT": "Belfast",
+}
+
+
+def postcode_area(postcode: str) -> str:
+    """'B5 6DY' -> 'B', 'LS1 4AB' -> 'LS', 'EC1A 1BB' -> 'EC'."""
+    m = re.match(r"\s*([A-Za-z]{1,2})", postcode or "")
+    return m.group(1).upper() if m else ""
+
+
+def major_city(postcode: str) -> str | None:
+    """The major city an agency belongs to, from its postcode. None if unrecognised."""
+    return CITY_BY_AREA.get(postcode_area(postcode))
+
 # green  = a confirmed positive fact
 # amber  = a factual issue, stated neutrally with its source (never a red "verdict")
 # grey   = neutral context
@@ -83,6 +144,7 @@ def enrich(agency: dict) -> dict:
     a = dict(agency)
     a["signals"] = build_signals(agency)
     a["sector_labels"] = [sector_label(s) for s in agency.get("sectors", []) if s]
+    a["city"] = major_city(agency.get("postcode", ""))
     a["has_accreditation"] = bool(agency.get("accreditations"))
     a["accounts_ok"] = not any("accounts overdue" in f.lower() for f in agency.get("flags", []))
     a["under_1_year"] = any("under 1 year" in f.lower() for f in agency.get("flags", []))
@@ -113,7 +175,8 @@ def all_sectors(agencies: list[dict]) -> list[str]:
 
 
 def all_cities(agencies: list[dict]) -> list[str]:
-    return sorted({a["town"].title() for a in agencies if a.get("town")})
+    """The major cities that actually have agencies, deduplicated and sorted."""
+    return sorted({a["city"] for a in agencies if a.get("city")})
 
 
 def filter_agencies(agencies, *, sector=None, city=None, query=None,
@@ -122,7 +185,7 @@ def filter_agencies(agencies, *, sector=None, city=None, query=None,
     for a in agencies:
         if sector and sector not in a.get("sectors", []):
             continue
-        if city and (a.get("town", "").lower() != city.lower()):
+        if city and (a.get("city") or "").lower() != city.lower():
             continue
         if query:
             q = query.lower()
