@@ -27,14 +27,14 @@ companies_house:
 
 # Keyword rules used to tag an agency with sectors from its name.
 sector_keywords:
-  security: [security, guard, guarding, protection, door supervisor, sia, patrol, steward, events security]
-  cleaning: [cleaning, cleaners, clean, hygiene, janitorial, facilities]
-  construction: [construction, build, building, labour, labor, site, civil, trades, scaffold]
-  hospitality: [hospitality, catering, chef, bar, hotel, events, waiting staff]
-  warehouse_logistics: [warehouse, logistics, driver, drivers, distribution, fulfilment, industrial]
-  care: [care, carers, healthcare, nursing, support worker, domiciliary]
+  security: [security, guard, guarding, protection, door supervisor, door supervision, sia, patrol, steward, events security, manned guarding, close protection, keyholding]
+  cleaning: [cleaning, cleaners, clean, hygiene, janitorial, facilities, housekeeping, domestic cleaning]
+  construction: [construction, build, building, labour, labor, site, civil, trades, scaffold, scaffolding, groundwork, groundworks, bricklaying, plant, rail, cscs]
+  hospitality: [hospitality, catering, chef, chefs, bar, bartender, hotel, events, waiting staff, waiting, kitchen, front of house, pub]
+  warehouse_logistics: [warehouse, logistics, driver, drivers, distribution, fulfilment, industrial, hgv, lgv, class 1, class 2, forklift, flt, haulage, courier, picking, pickers]
+  care: [care, carers, carer, healthcare, nursing, nurse, nurses, support worker, support work, domiciliary, homecare, live-in, social care, hca, rgn]
   # Note: bare "supply"/"school"/"sen" are deliberately excluded - too many false matches.
-  education: [education, teaching, teacher, teachers, tutor, tutoring, teaching assistant, supply teacher, supply teaching, cover supervisor, early years, invigilator, classroom]
+  education: [education, teaching, teacher, teachers, tutor, tutoring, teaching assistant, supply teacher, supply teaching, cover supervisor, early years, invigilator, classroom, nursery, nurseries, teaching staff]
 
 google_places:
   # Set the key in the environment, never in this file:  export GOOGLE_PLACES_API_KEY=...

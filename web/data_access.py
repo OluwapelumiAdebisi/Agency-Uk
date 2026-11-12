@@ -28,7 +28,7 @@ SECTOR_LABELS = {
     "warehouse_logistics": "Warehouse & driving",
     "care": "Care",
     "education": "Education",
-    "general": "General staffing",
+    "general": "General / multi-sector",
 }
 
 # Map each UK postcode AREA (the leading letters of a postcode) to a major city.

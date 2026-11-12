@@ -73,6 +73,11 @@ def test_filter_by_sector_and_accreditation(ags):
     assert accredited_first[0]["has_accreditation"] is True
 
 
+def test_general_sector_relabelled():
+    assert da.sector_label("general").startswith("General")
+    assert da.sector_label("education") == "Education"
+
+
 def test_cities_are_major_and_deduped(ags):
     # Every sample agency is a Birmingham postcode (B1, B3, B5, B11, B16),
     # so the whole list collapses to a single "Birmingham" option.
