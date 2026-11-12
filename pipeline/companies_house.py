@@ -6,6 +6,7 @@ No API key is needed. We stream it row by row, so it never needs to fit in memor
 """
 import csv
 import io
+import re
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -55,27 +56,37 @@ def _to_iso(d: str) -> str:
         return ""
 
 
+def _name_has_signal(name: str, signals: list[str]) -> bool:
+    low = f" {name.lower()} "
+    return any(re.search(rf"\b{re.escape(w)}\b", low) for w in signals)
+
+
 def load(conn, path: str, cfg: dict) -> dict:
     ch = cfg["companies_house"]
     agency_sics = set(ch["agency_sic_codes"])
+    sector_sics = set(ch["sector_sic_codes"])
+    signals = [s.lower() for s in ch.get("agency_name_signals", [])]
     keep = set(ch["keep_statuses"])
     stats = {"scanned": 0, "kept": 0}
 
     for row in _open_rows(path):
         stats["scanned"] += 1
         sics = _sic_codes(row)
-        # Agencies-first: only list a company that actually holds an employment-agency
-        # SIC (78100/78109/78200/78300). Sector SICs and name keywords (in classify.py)
-        # then only *label* which sector the agency works in. This keeps the directory
-        # to staffing agencies rather than every builder, cleaner or care home.
+        name = row["CompanyName"]
+        # Agencies-first keep rule:
+        #   - an employment-agency SIC (78100/78109/78200/78300) is always an agency, OR
+        #   - a SECTOR SIC plus an agency-like name (recruitment/staffing/labour/supply...)
+        #     catches sector-specialist agencies filed only under their sector's code
+        #     (e.g. YSA Supply under education 85600), without re-admitting every builder,
+        #     cleaner or care home. Sector SICs + keywords (classify.py) only *label*.
         is_agency = any(s in agency_sics for s in sics)
-        if not is_agency:
+        is_sector = any(s in sector_sics for s in sics)
+        if not (is_agency or (is_sector and _name_has_signal(name, signals))):
             continue
         if row.get("CompanyStatus") not in keep:
             continue
 
         number = row["CompanyNumber"]
-        name = row["CompanyName"]
         postcode = row.get("RegAddress.PostCode", "")
         conn.execute(
             """INSERT INTO agencies (company_number, name, name_normalised, status,

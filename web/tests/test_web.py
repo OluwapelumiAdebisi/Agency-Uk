@@ -33,7 +33,7 @@ def client():
 
 
 def test_sample_loads(ags):
-    assert len(ags) == 5
+    assert len(ags) == 6
     names = {a["name"] for a in ags}
     assert "SHIELDLINE SECURITY LIMITED" in names
 

@@ -63,11 +63,14 @@ def test_companies_house_filtering(conn):
     names = {r["name"] for r in conn.execute("SELECT name FROM agencies")}
     assert "ACME SOFTWARE LTD" not in names          # wrong SIC
     assert "OLD GUARD SECURITY LTD" not in names     # in liquidation
-    # Agencies-first: a cleaning COMPANY with no employment-agency SIC is dropped,
-    # while the cleaning AGENCY (which also holds 78200) is kept.
+    # Agencies-first: a plain cleaning COMPANY (no employment SIC, no agency-ish name)
+    # is dropped, while the cleaning AGENCY (also holds 78200) is kept.
     assert "PURECLEAN SERVICES LTD" not in names
     assert "BRIGHTCLEAN STAFFING LTD" in names
-    assert len(names) == 5
+    # Middle path: a sector-specialist agency filed only under its sector SIC (education
+    # 85600) is kept because its name signals an agency ("supply"), like YSA Supply.
+    assert "BRUM TEACHING SUPPLY LTD" in names
+    assert len(names) == 6
 
 
 def test_sectors(conn):
@@ -78,6 +81,7 @@ def test_sectors(conn):
     assert "construction" in sec("12345678")
     assert sec("08765432") == {"general"}
     assert "hospitality" in sec("15999888")
+    assert sec("20202020") == {"education"}   # BRUM TEACHING SUPPLY (85600 + "teaching")
 
 
 def test_education_sector(cfg):
@@ -143,7 +147,7 @@ def test_scoring_and_export(conn, cfg, tmp_path, monkeypatch):
     assert any("under 1 year" in f for f in sc["15999888"][1])
 
     out = tmp_path / "agencies.json"
-    assert export(conn, str(out)) == 5
+    assert export(conn, str(out)) == 6
     data = json.loads(out.read_text())
     assert data[0]["name"] == "SHIELDLINE SECURITY LIMITED"
     assert data[0]["google_place_id"] == "place_shield"
