@@ -32,13 +32,34 @@ def _key(cfg) -> str:
     return key
 
 
+# Google throttles bursts (429), especially on new projects whose quota is still
+# warming up. Retry those with exponential backoff instead of crashing the run.
+RETRYABLE = {429, 500, 502, 503, 504}
+
+
+def _post_with_retry(session, url, body, headers, max_retries=6):
+    delay = 2.0
+    r = None
+    for attempt in range(max_retries + 1):
+        r = session.post(url, json=body, headers=headers, timeout=30)
+        if getattr(r, "status_code", 200) not in RETRYABLE:
+            return r
+        if attempt == max_retries:
+            return r
+        retry_after = getattr(r, "headers", {}).get("Retry-After")
+        wait = float(retry_after) if (retry_after and str(retry_after).isdigit()) else delay
+        time.sleep(wait)
+        delay = min(delay * 2, 60)
+    return r
+
+
 def text_search(query: str, cfg: dict, session=requests) -> list[dict]:
     gp = cfg["google_places"]
     headers = {"X-Goog-Api-Key": _key(cfg), "X-Goog-FieldMask": DISCOVERY_FIELDS}
     body = {"textQuery": query, "regionCode": gp["region_code"], "pageSize": 20}
     results = []
     for _ in range(gp["max_pages_per_query"]):
-        r = session.post(SEARCH_URL, json=body, headers=headers, timeout=30)
+        r = _post_with_retry(session, SEARCH_URL, body, headers)
         r.raise_for_status()
         data = r.json()
         results += data.get("places", [])
@@ -87,13 +108,19 @@ def best_company_match(conn, place: dict, cfg: dict):
 
 def discover(conn, cfg: dict, session=requests) -> dict:
     gp = cfg["google_places"]
-    stats = {"queries": 0, "places": 0, "matched": 0, "unmatched": 0}
+    stats = {"queries": 0, "places": 0, "matched": 0, "unmatched": 0, "failed_queries": 0}
     for city in gp["cities"]:
         for sector in gp["sectors"]:
             for tpl in gp["query_templates"]:
                 query = tpl.format(sector=sector, city=city)
                 stats["queries"] += 1
-                for place in text_search(query, cfg, session):
+                try:
+                    found = text_search(query, cfg, session)
+                except Exception as e:
+                    stats["failed_queries"] += 1
+                    print(f"  skipped '{query}': {e}")
+                    continue
+                for place in found:
                     if place.get("businessStatus") not in (None, "OPERATIONAL"):
                         continue
                     stats["places"] += 1
@@ -120,6 +147,7 @@ def discover(conn, cfg: dict, session=requests) -> dict:
                     else:
                         stats["unmatched"] += 1
                 conn.commit()
+                time.sleep(1)  # gentle throttle between queries to stay under quota
     return stats
 
 
