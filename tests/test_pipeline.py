@@ -5,6 +5,7 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+import requests
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,9 +33,31 @@ def conn(tmp_path, cfg):
 
 
 class FakeResp:
-    def __init__(self, data): self._d = data
-    def raise_for_status(self): pass
+    def __init__(self, data, status_code=200):
+        self._d = data
+        self.status_code = status_code
+        self.headers = {}
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code}")
     def json(self): return self._d
+
+
+def test_text_search_retries_on_429(cfg, monkeypatch):
+    monkeypatch.setenv("GOOGLE_PLACES_API_KEY", "test")
+    monkeypatch.setattr(places.time, "sleep", lambda s: None)
+
+    class Flaky:
+        def __init__(self): self.calls = 0
+        def post(self, url, json=None, headers=None, timeout=None):
+            self.calls += 1
+            if self.calls == 1:
+                return FakeResp({}, status_code=429)   # first call rate-limited
+            return FakeResp({"places": [{"id": "p1"}]}, status_code=200)
+
+    flaky = Flaky()
+    out = places.text_search("security agency in Birmingham", cfg, session=flaky)
+    assert flaky.calls == 2 and out == [{"id": "p1"}]
 
 
 class FakeSession:
