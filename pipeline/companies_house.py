@@ -58,16 +58,18 @@ def _to_iso(d: str) -> str:
 def load(conn, path: str, cfg: dict) -> dict:
     ch = cfg["companies_house"]
     agency_sics = set(ch["agency_sic_codes"])
-    sector_sics = ch["sector_sic_codes"]
     keep = set(ch["keep_statuses"])
     stats = {"scanned": 0, "kept": 0}
 
     for row in _open_rows(path):
         stats["scanned"] += 1
         sics = _sic_codes(row)
+        # Agencies-first: only list a company that actually holds an employment-agency
+        # SIC (78100/78109/78200/78300). Sector SICs and name keywords (in classify.py)
+        # then only *label* which sector the agency works in. This keeps the directory
+        # to staffing agencies rather than every builder, cleaner or care home.
         is_agency = any(s in agency_sics for s in sics)
-        is_sector = any(s in sector_sics for s in sics)
-        if not (is_agency or is_sector):
+        if not is_agency:
             continue
         if row.get("CompanyStatus") not in keep:
             continue

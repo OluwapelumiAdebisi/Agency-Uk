@@ -63,6 +63,10 @@ def test_companies_house_filtering(conn):
     names = {r["name"] for r in conn.execute("SELECT name FROM agencies")}
     assert "ACME SOFTWARE LTD" not in names          # wrong SIC
     assert "OLD GUARD SECURITY LTD" not in names     # in liquidation
+    # Agencies-first: a cleaning COMPANY with no employment-agency SIC is dropped,
+    # while the cleaning AGENCY (which also holds 78200) is kept.
+    assert "PURECLEAN SERVICES LTD" not in names
+    assert "BRIGHTCLEAN STAFFING LTD" in names
     assert len(names) == 5
 
 
