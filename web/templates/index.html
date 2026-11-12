@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Agency UK – find staffing agencies near you{% endblock %}
+{% block content %}
+<section class="wrap hero">
+  <p class="eyebrow">New to the UK? Start here</p>
+  <h1>Most entry-level jobs go through agencies. Find the right ones.</h1>
+  <p class="lede">Every staffing agency in your area, checked against official records and accreditations, so you can register with the good ones and skip the job-board rejections.</p>
+
+  <form class="search-bar" action="{{ url_for('results') }}" method="get">
+    <div class="search-field">
+      <label for="sector">Type of work</label>
+      <select id="sector" name="sector">
+        <option value="">Any</option>
+        {% for s in sectors %}<option value="{{ s }}">{{ sector_label(s) }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="search-divider"></div>
+    <div class="search-field">
+      <label for="city">City</label>
+      <select id="city" name="city">
+        {% for c in cities %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary search-go">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+      Find agencies
+    </button>
+  </form>
+  <p class="popular">Popular: <a href="{{ url_for('results', sector='security') }}">Security</a> · <a href="{{ url_for('results', sector='cleaning') }}">Cleaning</a> · <a href="{{ url_for('results', sector='construction') }}">Construction</a></p>
+</section>
+
+<section class="wrap">
+  <div class="notice-fee">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9A3412" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"></path></svg>
+    <p><strong>A real agency will never charge you a fee to find you work.</strong> If anyone asks you to pay for a job or a placement, don't pay, and <a href="#">report them here</a>.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Browse by sector</h2>
+  <div class="sector-grid">
+    {% for s in sectors %}
+    <a class="sector-card" href="{{ url_for('results', sector=s) }}">
+      <span class="sector-name">{{ sector_label(s) }}</span>
+      <span class="sector-link">See agencies →</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap band" id="guides">
+  <h2 class="section-title">How we check every agency</h2>
+  <p class="section-lede">Every fact on an agency comes from a public record, not from who pays us.</p>
+  <div class="checks">
+    <div class="check"><span class="check-n">1</span><h3>Registered and active</h3><p>Confirmed on Companies House, with accounts and filings up to date.</p></div>
+    <div class="check"><span class="check-n">2</span><h3>Accredited</h3><p>SIA Approved Contractor, REC member, SafeContractor, CHAS and more.</p></div>
+    <div class="check"><span class="check-n">3</span><h3>Track record</h3><p>How long the company has been trading. New companies are flagged.</p></div>
+    <div class="check"><span class="check-n">4</span><h3>What workers say</h3><p>Live Google rating, plus reports from people who used our site.</p></div>
+  </div>
+</section>
+{% endblock %}

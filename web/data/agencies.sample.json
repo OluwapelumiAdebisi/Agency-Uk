@@ -1,0 +1,93 @@
+[
+  {
+    "company_number": "09876543",
+    "name": "SHIELDLINE SECURITY LIMITED",
+    "town": "BIRMINGHAM",
+    "postcode": "B5 6DY",
+    "sectors": [
+      "security"
+    ],
+    "accreditations": [
+      "sia_acs"
+    ],
+    "trust_score": 41,
+    "flags": [
+      "green: trading 11+ years",
+      "green: sia_acs accredited"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/09876543"
+  },
+  {
+    "company_number": "08765432",
+    "name": "PEOPLEFIRST RECRUITMENT LIMITED",
+    "town": "BIRMINGHAM",
+    "postcode": "B3 2BJ",
+    "sectors": [
+      "general"
+    ],
+    "accreditations": [
+      "rec"
+    ],
+    "trust_score": 29,
+    "flags": [
+      "green: trading 14+ years",
+      "green: rec accredited"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/08765432"
+  },
+  {
+    "company_number": "11223344",
+    "name": "BRIGHTCLEAN STAFFING LTD",
+    "town": "BIRMINGHAM",
+    "postcode": "B16 8LB",
+    "sectors": [
+      "cleaning"
+    ],
+    "accreditations": [
+      "rec"
+    ],
+    "trust_score": 22,
+    "flags": [
+      "green: trading 7+ years",
+      "green: rec accredited"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/11223344"
+  },
+  {
+    "company_number": "12345678",
+    "name": "MIDLANDS LABOUR & TRADES LTD",
+    "town": "BIRMINGHAM",
+    "postcode": "B11 2AA",
+    "sectors": [
+      "construction"
+    ],
+    "accreditations": [],
+    "trust_score": 0,
+    "flags": [
+      "green: trading 5+ years",
+      "red: accounts overdue at Companies House",
+      "red: confirmation statement overdue"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/12345678"
+  },
+  {
+    "company_number": "15999888",
+    "name": "NEWSTART HOSPITALITY STAFF LTD",
+    "town": "BIRMINGHAM",
+    "postcode": "B1 2HF",
+    "sectors": [
+      "hospitality"
+    ],
+    "accreditations": [],
+    "trust_score": 0,
+    "flags": [
+      "amber: company under 1 year old"
+    ],
+    "google_place_id": null,
+    "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/15999888"
+  }
+]

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Agency UK{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{ url_for('home') }}">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"></path><path d="M9 12l2 2 4-4"></path></svg>
+        </span>
+        <span class="brand-name">Agency UK</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="{{ url_for('results') }}">Find agencies</a>
+        <a href="{{ url_for('home') }}#guides">Newcomer guides</a>
+        <a class="btn btn-dark" href="#">Create my profile</a>
+      </nav>
+    </div>
+  </header>
+
+  {% if using_sample %}
+  <div class="sample-banner wrap">Showing sample data. Run the pipeline on the Companies House file for real agencies.</div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>Company data from Companies House. Ratings shown live from Google.</span>
+      <span class="footer-links"><a href="#">About</a><a href="#">Report an agency</a><a href="#">Privacy</a></span>
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
