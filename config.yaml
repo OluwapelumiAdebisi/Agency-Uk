@@ -50,9 +50,13 @@ google_places:
   query_templates:
     - "{sector} recruitment agency in {city}"
     - "{sector} staffing agency in {city}"
-  cities: [Birmingham]
+    - "{sector} employment agency in {city}"
+  # Birmingham plus the surrounding West Midlands travel-to-work area, where many
+  # agencies serving Birmingham are actually registered (Sutton Coldfield, Solihull...).
+  # Cost scales with cities x templates x sectors x pages - trim this list to spend less.
+  cities: [Birmingham, Solihull, Sutton Coldfield, Wolverhampton, Walsall, West Bromwich, Coventry]
   sectors: [security, cleaning, construction, hospitality, warehouse, education]
-  max_pages_per_query: 3     # 20 results per page
+  max_pages_per_query: 2     # 20 results per page
 
 matching:
   name_threshold: 90         # fuzzy score to accept on name alone
