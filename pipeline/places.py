@@ -118,7 +118,16 @@ def discover(conn, cfg: dict, session=requests) -> dict:
                     found = text_search(query, cfg, session)
                 except Exception as e:
                     stats["failed_queries"] += 1
+                    body = getattr(getattr(e, "response", None), "text", "") or ""
                     print(f"  skipped '{query}': {e}")
+                    if body:
+                        print(f"    Google says: {body[:400]}")
+                    # Fail fast: if the first few queries all fail with nothing found, the
+                    # cause is systemic (key/billing/restriction), not transient - stop
+                    # rather than burning the whole quota on the same error.
+                    if stats["places"] == 0 and stats["matched"] == 0 and stats["failed_queries"] >= 3:
+                        print("  Aborting: the first requests all failed the same way (see above).")
+                        return stats
                     continue
                 for place in found:
                     if place.get("businessStatus") not in (None, "OPERATIONAL"):
