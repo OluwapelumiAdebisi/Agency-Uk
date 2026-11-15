@@ -47,16 +47,15 @@ google_places:
   api_key_env: GOOGLE_PLACES_API_KEY
   region_code: GB
   # Discovery queries: {sector} x {city}
+  # Sized to fit a FREE (unbilled) project's ~100 requests/day cap:
+  #   cities x templates x sectors x pages = 5 x 1 x 6 x 1 = 30 calls per run.
+  # With billing enabled the daily cap is far higher - then add templates back
+  # (recruitment/staffing/employment), more cities, and raise max_pages to 2.
   query_templates:
     - "{sector} recruitment agency in {city}"
-    - "{sector} staffing agency in {city}"
-    - "{sector} employment agency in {city}"
-  # Birmingham plus the surrounding West Midlands travel-to-work area, where many
-  # agencies serving Birmingham are actually registered (Sutton Coldfield, Solihull...).
-  # Cost scales with cities x templates x sectors x pages - trim this list to spend less.
-  cities: [Birmingham, Solihull, Sutton Coldfield, Wolverhampton, Walsall, West Bromwich, Coventry]
+  cities: [Birmingham, Solihull, Sutton Coldfield, Wolverhampton, Walsall]
   sectors: [security, cleaning, construction, hospitality, warehouse, education]
-  max_pages_per_query: 2     # 20 results per page
+  max_pages_per_query: 1     # 20 results per page
 
 matching:
   name_threshold: 90         # fuzzy score to accept on name alone
