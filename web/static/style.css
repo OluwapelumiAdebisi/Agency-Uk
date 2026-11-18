@@ -19,6 +19,7 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.01em}
 .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px}
 .site-nav{display:flex;flex-wrap:wrap;align-items:center;gap:22px;font-size:15px;font-weight:500}
 .site-nav a{color:var(--ink);text-decoration:none}
+.site-nav a.btn-dark{color:#fff}
 .site-footer{border-top:1px solid var(--line);margin-top:48px}
 .footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding-top:28px;padding-bottom:28px;font-size:14px;color:var(--muted)}
 .footer-links a{margin-left:18px}
