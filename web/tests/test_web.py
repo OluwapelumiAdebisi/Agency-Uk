@@ -121,15 +121,37 @@ def test_rating_api_empty_without_key(client):
     assert rt.get_rating("place_abc") is None
 
 
-def test_apply_and_admin_routes_removed(client):
-    # The old lead-capture flow is gone (we can't lawfully send profiles to agencies).
-    assert client.get("/profile").status_code == 404
-    assert client.post("/apply", json={}).status_code == 404
-    assert client.get("/admin/applications").status_code == 404
-
-
 def test_agency_profile_has_apply_link_not_form(client):
     html = client.get("/agency/09876543").get_data(as_text=True)
     assert "Apply on their website" in html or "Find them online" in html
     assert "Send my profile" not in html  # the old wrong-shape button is gone
     assert "Companies House record" in html
+
+
+def test_signup_page_renders(client):
+    html = client.get("/signup").get_data(as_text=True)
+    assert "Join Agency UK" in html
+    assert "won't share your details with any agency" in html
+
+
+def test_signup_stores_user_and_counts(client, tmp_path, monkeypatch):
+    import storage
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 's.db'}")
+    storage._engine = None
+    r = client.post("/signup", json={
+        "name": "Ada Lovelace", "email": "ada@example.com",
+        "phone": "07000 000000", "sector": "security", "city": "Birmingham"})
+    body = r.get_json()
+    assert r.status_code == 200 and body["ok"] is True and "Ada" in body["message"]
+    s = storage.stats()
+    assert s["total"] == 1
+    assert ("security", 1) in s["by_sector"] and ("Birmingham", 1) in s["by_city"]
+
+
+def test_signup_requires_name_and_email(client):
+    r = client.post("/signup", json={"name": "Only Name"})
+    assert r.status_code == 400 and r.get_json()["ok"] is False
+
+
+def test_admin_signups_hidden_without_token(client):
+    assert client.get("/admin/signups").status_code == 404
