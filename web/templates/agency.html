@@ -52,8 +52,8 @@
     <aside class="agency-aside">
       <section class="card">
         <h2 class="small-head">Apply to this agency</h2>
-        <p class="muted small">Send your profile — licences, right to work and availability — in one tap.</p>
-        <button class="btn btn-primary block" type="button">Send my profile</button>
+        <p class="muted small">Send your name, phone and email, and we'll connect you with {{ a.name|title }}.</p>
+        <button class="btn btn-primary block" type="button" id="open-apply">Send my profile</button>
         {% if a.website %}
         <a class="btn btn-outline block" href="{{ a.website }}" target="_blank" rel="noopener nofollow">Register on their website ↗</a>
         {% else %}
@@ -73,9 +73,77 @@
       </section>
     </aside>
   </div>
+
+  <dialog id="apply-dialog" class="apply-dialog">
+    <form id="apply-form">
+      <h2>Send your profile to {{ a.name|title }}</h2>
+      <p class="muted small">We only share these details with this agency. Never pay an agency to find you work.</p>
+      <label class="form-field">Full name<input name="name" autocomplete="name" required></label>
+      <label class="form-field">Phone number<input name="phone" type="tel" autocomplete="tel" required></label>
+      <label class="form-field">Email<input name="email" type="email" autocomplete="email" required></label>
+      <p id="apply-msg" class="small" style="display: none"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-outline" id="cancel-apply">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="send-apply">Send</button>
+      </div>
+    </form>
+  </dialog>
 </main>
 {% endblock %}
 {% block scripts %}
+<script>
+(function () {
+  const AGENCY = {
+    company_number: "{{ a.company_number }}",
+    agency_name: {{ a.name|title|tojson }},
+    sector: {{ (a.sectors[0] if a.sectors else '')|tojson }}
+  };
+  const dlg = document.getElementById('apply-dialog');
+  const form = document.getElementById('apply-form');
+  const msg = document.getElementById('apply-msg');
+
+  document.getElementById('open-apply').addEventListener('click', () => {
+    try {
+      const p = JSON.parse(localStorage.getItem('agencyuk_profile') || '{}');
+      ['name', 'phone', 'email'].forEach(k => { if (p[k]) form[k].value = p[k]; });
+    } catch (e) {}
+    msg.style.display = 'none';
+    dlg.showModal();
+  });
+  document.getElementById('cancel-apply').addEventListener('click', () => dlg.close());
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('send-apply');
+    const payload = {
+      name: form.name.value.trim(), phone: form.phone.value.trim(), email: form.email.value.trim(),
+      company_number: AGENCY.company_number, agency_name: AGENCY.agency_name, sector: AGENCY.sector
+    };
+    try { localStorage.setItem('agencyuk_profile',
+      JSON.stringify({ name: payload.name, phone: payload.phone, email: payload.email })); } catch (e) {}
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const r = await fetch("{{ url_for('apply') }}", {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const d = await r.json();
+      msg.style.display = 'block';
+      if (d.ok) {
+        msg.style.color = '#0A4A3E'; msg.textContent = d.message;
+        form.querySelectorAll('input').forEach(i => i.disabled = true);
+        btn.style.display = 'none';
+      } else {
+        msg.style.color = '#9B1C1C'; msg.textContent = d.error || 'Something went wrong.';
+        btn.disabled = false; btn.textContent = 'Send';
+      }
+    } catch (err) {
+      msg.style.display = 'block'; msg.style.color = '#9B1C1C';
+      msg.textContent = 'Could not send just now — please try again.';
+      btn.disabled = false; btn.textContent = 'Send';
+    }
+  });
+})();
+</script>
 {% if a.google_place_id and not a.rating %}
 <script>
 // Rating wasn't ready at render time; fetch it live and fill the tiles.

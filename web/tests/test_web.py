@@ -119,3 +119,29 @@ def test_results_page_shows_agency(client):
 def test_rating_api_empty_without_key(client):
     assert client.get("/api/rating/place_abc").get_json() == {}
     assert rt.get_rating("place_abc") is None
+
+
+def test_profile_page_ok(client):
+    assert client.get("/profile").status_code == 200
+
+
+def test_apply_stores_lead(client, tmp_path, monkeypatch):
+    import storage
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'apps.db'}")
+    storage._engine = None  # pick up the test database
+    r = client.post("/apply", json={
+        "name": "Ada Lovelace", "phone": "07000 000000", "email": "ada@example.com",
+        "company_number": "09876543", "agency_name": "Shieldline", "sector": "security"})
+    body = r.get_json()
+    assert r.status_code == 200 and body["ok"] is True and "Ada" in body["message"]
+    leads = storage.list_applications()
+    assert leads[0]["name"] == "Ada Lovelace" and leads[0]["agency_name"] == "Shieldline"
+
+
+def test_apply_requires_all_fields(client):
+    r = client.post("/apply", json={"name": "No Phone", "phone": "", "email": ""})
+    assert r.status_code == 400 and r.get_json()["ok"] is False
+
+
+def test_admin_hidden_without_token(client):
+    assert client.get("/admin/applications").status_code == 404

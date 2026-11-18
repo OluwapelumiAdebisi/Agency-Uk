@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Your profile – Agency UK{% endblock %}
+{% block content %}
+<main class="wrap agency-page" style="max-width: 620px">
+  <h1>Your profile</h1>
+  <p class="muted">Save your details once, then send them to any agency in a single tap. We only share them with the agencies you choose.</p>
+
+  <form id="profile-form" class="card" style="display: flex; flex-direction: column; gap: 16px; margin-top: 18px">
+    <label class="form-field">Full name
+      <input name="name" autocomplete="name" required>
+    </label>
+    <label class="form-field">Phone number
+      <input name="phone" type="tel" autocomplete="tel" required>
+    </label>
+    <label class="form-field">Email
+      <input name="email" type="email" autocomplete="email" required>
+    </label>
+    <button class="btn btn-primary" type="submit">Save my profile</button>
+    <span id="saved-msg" class="muted small" style="display: none">Saved on this device ✓ — now open any agency and tap "Send my profile".</span>
+  </form>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+const f = document.getElementById('profile-form');
+try {
+  const p = JSON.parse(localStorage.getItem('agencyuk_profile') || '{}');
+  ['name', 'phone', 'email'].forEach(k => { if (p[k]) f[k].value = p[k]; });
+} catch (e) {}
+f.addEventListener('submit', e => {
+  e.preventDefault();
+  const p = { name: f.name.value.trim(), phone: f.phone.value.trim(), email: f.email.value.trim() };
+  try { localStorage.setItem('agencyuk_profile', JSON.stringify(p)); } catch (e) {}
+  document.getElementById('saved-msg').style.display = 'block';
+});
+</script>
+{% endblock %}

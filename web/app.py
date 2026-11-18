@@ -15,6 +15,7 @@ from flask import Flask, abort, jsonify, render_template, request
 
 import data_access as da
 import ratings as rt
+import storage
 
 BASE = Path(__file__).parent
 DATA_DIR = BASE / "data"
@@ -88,6 +89,42 @@ def agency(company_number):
 def api_rating(place_id):
     """Lets the front end refresh a rating without a page reload. Returns {} if unavailable."""
     return jsonify(rt.get_rating(place_id) or {})
+
+
+@app.route("/profile")
+def profile():
+    """Where a job seeker saves their reusable profile (kept in their browser)."""
+    return render_template("profile.html")
+
+
+@app.route("/apply", methods=["POST"])
+def apply():
+    """A job seeker sends their profile to an agency. The lead is stored for the platform."""
+    d = request.get_json(silent=True) or request.form
+    name = (d.get("name") or "").strip()
+    phone = (d.get("phone") or "").strip()
+    email = (d.get("email") or "").strip()
+    if not (name and phone and email):
+        return jsonify({"ok": False, "error": "Please add your name, phone and email."}), 400
+    storage.add_application({
+        "name": name, "phone": phone, "email": email,
+        "company_number": d.get("company_number"),
+        "agency_name": d.get("agency_name"),
+        "sector": d.get("sector"),
+    })
+    first = name.split()[0]
+    return jsonify({"ok": True,
+                    "message": f"Thanks {first} — we've got your details and will connect you with this agency."})
+
+
+@app.route("/admin/applications")
+def admin_applications():
+    """Private list of leads. Locked unless ADMIN_TOKEN is set and matches ?token=."""
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token or request.args.get("token") != token:
+        abort(404)
+    return render_template("admin_applications.html",
+                           applications=storage.list_applications(), token=token)
 
 
 @app.errorhandler(404)
