@@ -21,7 +21,8 @@ from .normalise import extract_postcode, name_score, postcode_district
 SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 DETAILS_URL = "https://places.googleapis.com/v1/places/{place_id}"
 
-DISCOVERY_FIELDS = "places.id,places.displayName,places.formattedAddress,places.businessStatus,nextPageToken"
+DISCOVERY_FIELDS = ("places.id,places.displayName,places.formattedAddress,places.businessStatus,"
+                    "places.websiteUri,places.nationalPhoneNumber,nextPageToken")
 LIVE_FIELDS = "rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri"
 
 
@@ -135,12 +136,16 @@ def discover(conn, cfg: dict, session=requests) -> dict:
                     stats["places"] += 1
                     number, score = best_company_match(conn, place, cfg)
                     conn.execute(
-                        """INSERT INTO place_links (place_id, company_number, match_score, found_by_query)
-                           VALUES (?,?,?,?)
+                        """INSERT INTO place_links
+                             (place_id, company_number, match_score, found_by_query, website, phone)
+                           VALUES (?,?,?,?,?,?)
                            ON CONFLICT(place_id) DO UPDATE SET
                              company_number=COALESCE(excluded.company_number, place_links.company_number),
-                             match_score=MAX(excluded.match_score, place_links.match_score)""",
-                        (place["id"], number, score, query),
+                             match_score=MAX(excluded.match_score, place_links.match_score),
+                             website=COALESCE(excluded.website, place_links.website),
+                             phone=COALESCE(excluded.phone, place_links.phone)""",
+                        (place["id"], number, score, query,
+                         place.get("websiteUri"), place.get("nationalPhoneNumber")),
                     )
                     if number:
                         stats["matched"] += 1

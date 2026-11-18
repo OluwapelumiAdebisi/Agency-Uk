@@ -16,6 +16,8 @@
       "green: sia_acs accredited"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/09876543"
   },
   {
@@ -35,6 +37,8 @@
       "green: rec accredited"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/08765432"
   },
   {
@@ -54,6 +58,8 @@
       "green: rec accredited"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/11223344"
   },
   {
@@ -70,6 +76,8 @@
       "green: trading 9+ years"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/20202020"
   },
   {
@@ -88,6 +96,8 @@
       "red: confirmation statement overdue"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/12345678"
   },
   {
@@ -104,6 +114,8 @@
       "amber: company under 1 year old"
     ],
     "google_place_id": null,
+    "website": null,
+    "phone": null,
     "companies_house_url": "https://find-and-update.company-information.service.gov.uk/company/15999888"
   }
 ]
