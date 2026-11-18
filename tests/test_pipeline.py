@@ -130,6 +130,20 @@ def test_sia_inclusion(tmp_path, cfg):
     assert acc[0] == "sia_acs" and acc[1] == "2028-03-31"
 
 
+def test_reload_is_clean_and_keeps_places(tmp_path, cfg):
+    ch = str(SAMPLE / "companies_house_sample.csv")
+    c = connect(str(tmp_path / "x.db"))
+    companies_house.load(c, ch, cfg)
+    c.execute("INSERT INTO place_links (place_id, company_number, match_score, found_by_query)"
+              " VALUES ('p1','09876543',100,'q')")
+    c.commit()
+    n1 = c.execute("SELECT count(*) FROM agencies").fetchone()[0]
+    companies_house.load(c, ch, cfg)  # reload must not double-count
+    assert c.execute("SELECT count(*) FROM agencies").fetchone()[0] == n1
+    # Google discovery data is preserved across the reload
+    assert c.execute("SELECT count(*) FROM place_links").fetchone()[0] == 1
+
+
 def test_companies_house_filtering(conn):
     names = {r["name"] for r in conn.execute("SELECT name FROM agencies")}
     assert "ACME SOFTWARE LTD" not in names          # wrong SIC

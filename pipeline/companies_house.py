@@ -84,6 +84,15 @@ def load(conn, path: str, cfg: dict, sia_csv: str | None = None) -> dict:
     sia_lookup = _load_sia(sia_csv) if sia_csv else {}
     stats = {"scanned": 0, "kept": 0, "sia_added": 0}
 
+    # A load is a full rebuild of the Companies-House-derived tables, so clear them
+    # first (re-running is then clean and idempotent). KEEP place_links, so the Google
+    # discovery data survives a reload - no need to re-run discover or spend quota.
+    conn.executescript(
+        "DELETE FROM trust_scores; DELETE FROM accreditations;"
+        " DELETE FROM agency_sectors; DELETE FROM agencies;"
+    )
+    conn.commit()
+
     for row in _open_rows(path):
         stats["scanned"] += 1
         number = row.get("CompanyNumber", "")
