@@ -12,7 +12,7 @@ from datetime import date
 from pathlib import Path
 from typing import Iterator
 
-from .normalise import normalise_name, postcode_district
+from .normalise import match_key, normalise_name, postcode_district
 from .classify import sectors_for
 
 
@@ -69,7 +69,7 @@ def _load_sia(csv_path: str) -> dict:
             row = {k.strip().lower(): (v or "").strip() for k, v in row.items()}
             info = {"valid_until": row.get("valid_until", ""), "sectors": row.get("sectors", "")}
             for key in (row.get("name", ""), row.get("trading_name", "")):
-                nk = normalise_name(key)
+                nk = match_key(key)
                 if nk:
                     lookup.setdefault(nk, info)
     return lookup
@@ -101,7 +101,7 @@ def load(conn, path: str, cfg: dict, sia_csv: str | None = None) -> dict:
         is_sector = any(s in sector_sics for s in sics)
         # An SIA Approved Contractor (matched by name) is a vetted security employer -
         # keep it even if it's a pure guarding firm the agency rules would otherwise drop.
-        sia = sia_lookup.get(normalise_name(name))
+        sia = sia_lookup.get(match_key(name))
         if not (is_agency or (is_sector and _name_has_signal(name, signals)) or sia):
             continue
         if row.get("CompanyStatus") not in keep:

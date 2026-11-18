@@ -3,12 +3,25 @@ import re
 from rapidfuzz import fuzz
 
 _SUFFIXES = r"\b(limited|ltd|plc|llp|uk|u\.k|group|services|company|co|the)\b"
+# For exact-key matching (e.g. the SIA register), strip ONLY the company suffix so
+# distinguishing words stay: "Abbey Security Services" != "Abbey Security".
+_COMPANY_SUFFIX = r"\b(limited|ltd|plc|llp|cyf|cyfyngedig)\b"
 
 
 def normalise_name(name: str) -> str:
+    """Aggressive normalisation for fuzzy scoring (drops generic words too)."""
     n = (name or "").lower().replace("&", " and ")
     n = re.sub(r"[^\w\s]", " ", n)
     n = re.sub(_SUFFIXES, " ", n)
+    return re.sub(r"\s+", " ", n).strip()
+
+
+def match_key(name: str) -> str:
+    """Precise key for exact matching: lowercase, de-punctuate, drop only the company
+    suffix. Keeps 'services'/'group'/etc. so similarly-named firms stay distinct."""
+    n = (name or "").lower().replace("&", " and ")
+    n = re.sub(r"[^\w\s]", " ", n)
+    n = re.sub(_COMPANY_SUFFIX, " ", n)
     return re.sub(r"\s+", " ", n).strip()
 
 

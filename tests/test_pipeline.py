@@ -82,6 +82,14 @@ def test_normalise():
     assert name_score("Shieldline Security", "SHIELDLINE SECURITY LIMITED") == 100
 
 
+def test_match_key_keeps_distinguishing_words():
+    from pipeline.normalise import match_key
+    # Exact, suffix-insensitive match
+    assert match_key("Abbey Security Services Ltd") == match_key("ABBEY SECURITY SERVICES LIMITED")
+    # But a shorter similarly-named firm must NOT collapse onto it
+    assert match_key("Abbey Security Services Ltd") != match_key("Abbey Security Ltd")
+
+
 def test_blank_and_short_lines_are_skipped(tmp_path, cfg):
     # The real Companies House file ends with a blank line; a short/blank row must be
     # skipped, not crash the load (regression for the CompanyName KeyError).
