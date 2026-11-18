@@ -100,6 +100,28 @@ def test_blank_and_short_lines_are_skipped(tmp_path, cfg):
     assert names == {"GOOD STAFFING LTD"}
 
 
+def test_sia_inclusion(tmp_path, cfg):
+    ch = str(SAMPLE / "companies_house_sample.csv")
+    got = lambda c: {r["name"] for r in c.execute("SELECT name FROM agencies")}
+
+    # Without the SIA register, a pure guarding firm (80100, no agency-ish name) is dropped.
+    c1 = connect(str(tmp_path / "a.db"))
+    companies_house.load(c1, ch, cfg)
+    assert "CASTLE GUARDING LTD" not in got(c1)
+
+    # With it, the contractor is kept, tagged security, and carries the SIA badge.
+    sia = tmp_path / "sia.csv"
+    sia.write_text("name,trading_name,sectors,valid_until\nCastle Guarding Ltd,,\"SG, DS\",2028-03-31\n")
+    c2 = connect(str(tmp_path / "b.db"))
+    stats = companies_house.load(c2, ch, cfg, sia_csv=str(sia))
+    assert "CASTLE GUARDING LTD" in got(c2) and stats["sia_added"] == 1
+    cn = c2.execute("SELECT company_number FROM agencies WHERE name='CASTLE GUARDING LTD'").fetchone()[0]
+    secs = {r[0] for r in c2.execute("SELECT sector FROM agency_sectors WHERE company_number=?", (cn,))}
+    assert "security" in secs
+    acc = c2.execute("SELECT scheme, valid_until FROM accreditations WHERE company_number=?", (cn,)).fetchone()
+    assert acc[0] == "sia_acs" and acc[1] == "2028-03-31"
+
+
 def test_companies_house_filtering(conn):
     names = {r["name"] for r in conn.execute("SELECT name FROM agencies")}
     assert "ACME SOFTWARE LTD" not in names          # wrong SIC

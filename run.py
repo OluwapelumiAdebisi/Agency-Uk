@@ -72,7 +72,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "config.yaml"))
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("load-ch").add_argument("path")
+    lc = sub.add_parser("load-ch")
+    lc.add_argument("path")
+    lc.add_argument("--sia", default=None, help="SIA register CSV: also include & badge its contractors")
     sub.add_parser("discover")
     lr = sub.add_parser("load-register")
     lr.add_argument("scheme")
@@ -86,7 +88,7 @@ def main():
     conn = connect(str(ROOT / cfg["database"]))
 
     if args.cmd == "load-ch":
-        print(companies_house.load(conn, args.path, cfg))
+        print(companies_house.load(conn, args.path, cfg, sia_csv=args.sia))
     elif args.cmd == "discover":
         print(places.discover(conn, cfg))
     elif args.cmd == "load-register":
