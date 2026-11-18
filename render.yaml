@@ -18,3 +18,11 @@ services:
       # (Environment tab) so it isn't committed to the repo.
       - key: GOOGLE_PLACES_API_KEY
         sync: false
+      # Where job-seeker applications are stored. Set this to a hosted Postgres
+      # connection string (e.g. Supabase or Neon) - without it, leads go to an
+      # ephemeral file that is wiped on every deploy.
+      - key: DATABASE_URL
+        sync: false
+      # A secret you choose, to unlock /admin/applications?token=<this>.
+      - key: ADMIN_TOKEN
+        sync: false
