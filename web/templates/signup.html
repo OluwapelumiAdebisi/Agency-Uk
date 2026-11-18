@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Sign up – Agency UK{% endblock %}
+{% block content %}
+<main class="wrap agency-page" style="max-width: 640px">
+  <h1>Join Agency UK</h1>
+  <p class="muted">Signing up tells us you're here, so we know where to focus the directory next. It takes 20 seconds and there's nothing to confirm after.</p>
+
+  <form id="signup-form" class="card" style="display: flex; flex-direction: column; gap: 16px; margin-top: 18px">
+    <label class="form-field">Full name *
+      <input name="name" autocomplete="name" required>
+    </label>
+    <label class="form-field">Email *
+      <input name="email" type="email" autocomplete="email" required>
+    </label>
+    <label class="form-field">Phone (optional)
+      <input name="phone" type="tel" autocomplete="tel">
+    </label>
+    <label class="form-field">What work are you looking for?
+      <select name="sector">
+        <option value="">Any sector</option>
+        {% for s in sectors %}<option value="{{ s }}">{{ sector_label(s) }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="form-field">Which city?
+      <select name="city">
+        <option value="">Anywhere in the UK</option>
+        {% for c in cities %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </label>
+    <p class="muted small" style="margin: 0">
+      We store this to count our users and see what work is in demand. <strong>We won't share your details with any agency</strong> — Agency UK is a free directory, and you apply to agencies directly.
+    </p>
+    <p id="signup-msg" class="small" style="display: none"></p>
+    <button class="btn btn-primary" type="submit" id="signup-btn">Create my profile</button>
+  </form>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+const f = document.getElementById('signup-form');
+const msg = document.getElementById('signup-msg');
+const btn = document.getElementById('signup-btn');
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = Object.fromEntries(new FormData(f));
+  btn.disabled = true; btn.textContent = 'Saving…';
+  msg.style.display = 'none';
+  try {
+    const r = await fetch('{{ url_for("signup") }}', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    msg.style.display = 'block';
+    if (d.ok) {
+      msg.style.color = '#0A4A3E'; msg.textContent = d.message;
+      f.querySelectorAll('input, select').forEach(i => i.disabled = true);
+      btn.style.display = 'none';
+    } else {
+      msg.style.color = '#9B1C1C'; msg.textContent = d.error || 'Something went wrong.';
+      btn.disabled = false; btn.textContent = 'Create my profile';
+    }
+  } catch (err) {
+    msg.style.display = 'block'; msg.style.color = '#9B1C1C';
+    msg.textContent = 'Could not save just now — please try again.';
+    btn.disabled = false; btn.textContent = 'Create my profile';
+  }
+});
+</script>
+{% endblock %}

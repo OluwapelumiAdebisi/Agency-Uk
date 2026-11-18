@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Signups – Agency UK{% endblock %}
+{% block content %}
+<main class="wrap agency-page">
+  <h1>{{ stats.total }} signup{{ 's' if stats.total != 1 else '' }}</h1>
+  <p class="muted">Private to you. Signups are users who registered with Agency UK; their details are not shared with agencies.</p>
+
+  {% if stats.by_sector or stats.by_city %}
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; margin: 24px 0">
+    {% if stats.by_sector %}
+    <section class="card" style="flex: 1 1 300px">
+      <h2 class="small-head" style="margin: 0 0 10px">By sector</h2>
+      <table class="leads">
+        <tbody>
+          {% for s, n in stats.by_sector %}<tr><td>{{ sector_label(s) }}</td><td style="text-align: right">{{ n }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endif %}
+    {% if stats.by_city %}
+    <section class="card" style="flex: 1 1 300px">
+      <h2 class="small-head" style="margin: 0 0 10px">By city</h2>
+      <table class="leads">
+        <tbody>
+          {% for c, n in stats.by_city %}<tr><td>{{ c }}</td><td style="text-align: right">{{ n }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if signups %}
+  <h2 class="small-head" style="margin-top: 16px">Recent signups</h2>
+  <div style="overflow-x: auto">
+    <table class="leads">
+      <thead><tr><th>When</th><th>Name</th><th>Email</th><th>Phone</th><th>Sector</th><th>City</th></tr></thead>
+      <tbody>
+        {% for s in signups %}
+        <tr>
+          <td>{{ s.created_at.strftime('%d %b %H:%M') if s.created_at else '' }}</td>
+          <td>{{ s.name }}</td>
+          <td><a href="mailto:{{ s.email }}">{{ s.email }}</a></td>
+          <td>{{ s.phone or '' }}</td>
+          <td>{{ sector_label(s.sector) if s.sector else '' }}</td>
+          <td>{{ s.city or '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No signups yet.</p>
+  {% endif %}
+</main>
+{% endblock %}

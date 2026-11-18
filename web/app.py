@@ -15,6 +15,7 @@ from flask import Flask, abort, jsonify, render_template, request
 
 import data_access as da
 import ratings as rt
+import storage
 
 BASE = Path(__file__).parent
 DATA_DIR = BASE / "data"
@@ -88,6 +89,37 @@ def agency(company_number):
 def api_rating(place_id):
     """Lets the front end refresh a rating without a page reload. Returns {} if unavailable."""
     return jsonify(rt.get_rating(place_id) or {})
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Job seekers register with Agency UK so we can track growth. Their details
+    are NOT forwarded to agencies - this is only a sign-up with us."""
+    if request.method == "GET":
+        ags = agencies()
+        return render_template("signup.html", sectors=da.all_sectors(ags), cities=da.all_cities(ags))
+    d = request.get_json(silent=True) or request.form
+    name = (d.get("name") or "").strip()
+    email = (d.get("email") or "").strip()
+    if not name or not email:
+        return jsonify({"ok": False, "error": "Please give us your name and email."}), 400
+    storage.add_signup({
+        "name": name, "email": email,
+        "phone": d.get("phone"), "sector": d.get("sector"), "city": d.get("city"),
+    })
+    return jsonify({"ok": True,
+                    "message": f"Welcome aboard, {name.split()[0]}. You're set — browse agencies any time."})
+
+
+@app.route("/admin/signups")
+def admin_signups():
+    """Private signup list + stats. Locked unless ADMIN_TOKEN is set and matches ?token=."""
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token or request.args.get("token") != token:
+        abort(404)
+    return render_template("admin_signups.html",
+                           signups=storage.list_signups(),
+                           stats=storage.stats(), token=token)
 
 
 @app.errorhandler(404)
