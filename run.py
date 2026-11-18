@@ -29,9 +29,13 @@ def export(conn, out_path: str) -> int:
         """SELECT a.*, t.score, t.flags,
                   (SELECT group_concat(sector) FROM agency_sectors s WHERE s.company_number=a.company_number) AS sectors,
                   (SELECT group_concat(scheme) FROM accreditations c WHERE c.company_number=a.company_number) AS schemes,
-                  (SELECT place_id FROM place_links p WHERE p.company_number=a.company_number
-                     ORDER BY match_score DESC LIMIT 1) AS place_id
-           FROM agencies a LEFT JOIN trust_scores t USING (company_number)
+                  p.place_id AS place_id, p.website AS website, p.phone AS phone
+           FROM agencies a
+           LEFT JOIN trust_scores t USING (company_number)
+           LEFT JOIN (SELECT company_number, place_id, website, phone,
+                             ROW_NUMBER() OVER (PARTITION BY company_number ORDER BY match_score DESC) AS rn
+                      FROM place_links WHERE company_number IS NOT NULL) p
+             ON p.company_number=a.company_number AND p.rn=1
            ORDER BY t.score DESC"""
     ).fetchall()
     data = [{
@@ -44,6 +48,8 @@ def export(conn, out_path: str) -> int:
         "trust_score": r["score"],
         "flags": json.loads(r["flags"] or "[]"),
         "google_place_id": r["place_id"],   # site fetches the live rating with this
+        "website": r["website"],
+        "phone": r["phone"],
         "companies_house_url": f"https://find-and-update.company-information.service.gov.uk/company/{r['company_number']}",
     } for r in rows]
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)

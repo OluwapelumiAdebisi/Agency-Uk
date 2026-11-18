@@ -54,7 +54,12 @@
         <h2 class="small-head">Apply to this agency</h2>
         <p class="muted small">Send your profile — licences, right to work and availability — in one tap.</p>
         <button class="btn btn-primary block" type="button">Send my profile</button>
-        <a class="btn btn-outline block" href="#">Register on their website ↗</a>
+        {% if a.website %}
+        <a class="btn btn-outline block" href="{{ a.website }}" target="_blank" rel="noopener nofollow">Register on their website ↗</a>
+        {% else %}
+        <a class="btn btn-outline block" href="{{ a.companies_house_url }}" target="_blank" rel="noopener">View their Companies House record ↗</a>
+        {% endif %}
+        {% if a.phone %}<a class="muted small" style="text-align: center" href="tel:{{ a.phone }}">Call {{ a.phone }}</a>{% endif %}
       </section>
       <section class="card notice-fee compact">
         <span class="fee-title">Never pay for a job</span>

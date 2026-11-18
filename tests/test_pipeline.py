@@ -65,7 +65,8 @@ class FakeSession:
         if "security" in json["textQuery"]:
             return FakeResp({"places": [
                 {"id": "place_shield", "displayName": {"text": "Shieldline Security"},
-                 "formattedAddress": "12 Digbeth High St, Birmingham B5 6DY, UK", "businessStatus": "OPERATIONAL"},
+                 "formattedAddress": "12 Digbeth High St, Birmingham B5 6DY, UK", "businessStatus": "OPERATIONAL",
+                 "websiteUri": "https://shieldline.example", "nationalPhoneNumber": "0121 496 0000"},
                 {"id": "place_unknown", "displayName": {"text": "Totally Different Guards"},
                  "formattedAddress": "Somewhere, Birmingham B1 1AA, UK", "businessStatus": "OPERATIONAL"},
             ]})
@@ -201,6 +202,9 @@ def test_places_matching(conn, cfg, monkeypatch):
     assert links["place_mlt"] == "12345678"
     assert links["place_unknown"] is None
     assert stats["unmatched"] >= 1
+    # Website/phone are captured from the place and stored for the matched company.
+    web = conn.execute("SELECT website, phone FROM place_links WHERE place_id='place_shield'").fetchone()
+    assert web["website"] == "https://shieldline.example" and web["phone"] == "0121 496 0000"
 
 
 def test_accreditations(conn, cfg):
@@ -236,3 +240,5 @@ def test_scoring_and_export(conn, cfg, tmp_path, monkeypatch):
     data = json.loads(out.read_text())
     assert data[0]["name"] == "SHIELDLINE SECURITY LIMITED"
     assert data[0]["google_place_id"] == "place_shield"
+    assert data[0]["website"] == "https://shieldline.example"
+    assert data[0]["phone"] == "0121 496 0000"

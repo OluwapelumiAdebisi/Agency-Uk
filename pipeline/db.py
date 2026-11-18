@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS place_links (
     company_number TEXT REFERENCES agencies(company_number),  -- NULL = unmatched
     match_score    REAL,
     found_by_query TEXT,
+    website        TEXT,   -- from Google; contact data, refreshed within 30 days
+    phone          TEXT,
     first_seen     TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -66,4 +68,14 @@ def connect(path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns to older databases so an existing db keeps working after an upgrade."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(place_links)")}
+    for col in ("website", "phone"):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE place_links ADD COLUMN {col} TEXT")
+    conn.commit()
