@@ -18,15 +18,19 @@ pip install -r requirements.txt
 python -m pytest -q                       # runs everything on sample data, no keys needed
 
 # Real run
-python run.py load-ch ~/Downloads/BasicCompanyDataAsOneFile-2026-11-01.zip
+# --sia also INCLUDES the register's security contractors (not just badges existing ones):
+# most SIA firms are filed under the security SIC and would otherwise be filtered out.
+python run.py load-ch ~/Downloads/BasicCompanyDataAsOneFile-2026-11-01.zip --sia data/registers/sia_acs.csv
 export GOOGLE_PLACES_API_KEY=your_key
 python run.py discover
-python run.py load-register sia_acs data/registers/sia_acs.csv
 python run.py load-register rec     data/registers/rec.csv
 python run.py score
 python run.py export out/agencies.json
 python run.py report
 ```
+
+Build the SIA register CSV from the downloaded PDF with
+`python tools/extract_sia_register.py register.pdf data/registers/sia_acs.csv`.
 
 ## The stages
 

@@ -61,13 +61,28 @@ def _name_has_signal(name: str, signals: list[str]) -> bool:
     return any(re.search(rf"\b{re.escape(w)}\b", low) for w in signals)
 
 
-def load(conn, path: str, cfg: dict) -> dict:
+def _load_sia(csv_path: str) -> dict:
+    """Index an SIA register CSV by normalised name (legal + trading) for inclusion."""
+    lookup = {}
+    with open(csv_path, encoding="utf-8-sig", newline="") as fh:
+        for row in csv.DictReader(fh):
+            row = {k.strip().lower(): (v or "").strip() for k, v in row.items()}
+            info = {"valid_until": row.get("valid_until", ""), "sectors": row.get("sectors", "")}
+            for key in (row.get("name", ""), row.get("trading_name", "")):
+                nk = normalise_name(key)
+                if nk:
+                    lookup.setdefault(nk, info)
+    return lookup
+
+
+def load(conn, path: str, cfg: dict, sia_csv: str | None = None) -> dict:
     ch = cfg["companies_house"]
     agency_sics = set(ch["agency_sic_codes"])
     sector_sics = set(ch["sector_sic_codes"])
     signals = [s.lower() for s in ch.get("agency_name_signals", [])]
     keep = set(ch["keep_statuses"])
-    stats = {"scanned": 0, "kept": 0}
+    sia_lookup = _load_sia(sia_csv) if sia_csv else {}
+    stats = {"scanned": 0, "kept": 0, "sia_added": 0}
 
     for row in _open_rows(path):
         stats["scanned"] += 1
@@ -84,7 +99,10 @@ def load(conn, path: str, cfg: dict) -> dict:
         #     cleaner or care home. Sector SICs + keywords (classify.py) only *label*.
         is_agency = any(s in agency_sics for s in sics)
         is_sector = any(s in sector_sics for s in sics)
-        if not (is_agency or (is_sector and _name_has_signal(name, signals))):
+        # An SIA Approved Contractor (matched by name) is a vetted security employer -
+        # keep it even if it's a pure guarding firm the agency rules would otherwise drop.
+        sia = sia_lookup.get(normalise_name(name))
+        if not (is_agency or (is_sector and _name_has_signal(name, signals)) or sia):
             continue
         if row.get("CompanyStatus") not in keep:
             continue
@@ -114,6 +132,16 @@ def load(conn, path: str, cfg: dict) -> dict:
             conn.execute(
                 "INSERT OR IGNORE INTO agency_sectors VALUES (?,?,?)", (number, sector, source)
             )
+        if sia:
+            conn.execute("INSERT OR IGNORE INTO agency_sectors VALUES (?,?,?)", (number, "security", "sia"))
+            conn.execute("DELETE FROM agency_sectors WHERE company_number=? AND sector='general'", (number,))
+            conn.execute(
+                """INSERT OR REPLACE INTO accreditations
+                   (company_number, scheme, reference, valid_until, match_method, match_score)
+                   VALUES (?,?,?,?,?,?)""",
+                (number, "sia_acs", sia["sectors"], sia["valid_until"], "sia_name", 100.0),
+            )
+            stats["sia_added"] += 1
         stats["kept"] += 1
 
     conn.commit()
