@@ -153,5 +153,15 @@ def test_signup_requires_name_and_email(client):
     assert r.status_code == 400 and r.get_json()["ok"] is False
 
 
+def test_database_url_pins_psycopg2(monkeypatch):
+    import storage
+    monkeypatch.setenv("DATABASE_URL",
+                       "postgres://u:p@host/db?sslmode=require&channel_binding=require")
+    # Make sure the driver prefix is set so SQLAlchemy does not try psycopg v3.
+    url = storage._database_url()
+    assert url.startswith("postgresql+psycopg2://")
+    assert "channel_binding" not in url
+
+
 def test_admin_signups_hidden_without_token(client):
     assert client.get("/admin/signups").status_code == 404

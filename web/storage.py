@@ -29,6 +29,10 @@ def _database_url() -> str:
     url = os.environ.get("DATABASE_URL", "sqlite:///signups.db")
     if url.startswith("postgres://"):             # Render/Heroku style -> SQLAlchemy
         url = url.replace("postgres://", "postgresql://", 1)
+    # Pin SQLAlchemy to psycopg2 so it does not try to import psycopg (v3) first,
+    # which is not installed. We ship psycopg2-binary.
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
     # Neon's connection strings sometimes include &channel_binding=require which the
     # psycopg2 driver rejects as an unrecognised parameter - strip it so it just works.
     return url.replace("&channel_binding=require", "").replace("channel_binding=require&", "").replace("?channel_binding=require", "?")
