@@ -46,16 +46,35 @@ google_places:
   # Set the key in the environment, never in this file:  export GOOGLE_PLACES_API_KEY=...
   api_key_env: GOOGLE_PLACES_API_KEY
   region_code: GB
-  # Discovery queries: {sector} x {city}
-  # Sized to fit a FREE (unbilled) project's ~100 requests/day cap:
-  #   cities x templates x sectors x pages = 5 x 1 x 6 x 1 = 30 calls per run.
-  # With billing enabled the daily cap is far higher - then add templates back
-  # (recruitment/staffing/employment), more cities, and raise max_pages to 2.
+  # Discovery queries: {sector} x {city}.
+  # Sized for a project WITH Google billing enabled: covers major UK cities with
+  # three phrases per sector. Figures to estimate cost:
+  #   queries = cities (36) x templates (3) x sectors (6) = 648 queries
+  #   api calls = queries x max_pages (2) = up to ~1,300 calls per full run
+  # At Google's Text Search (New) Advanced tier (~$32 / 1k calls, Nov 2026),
+  # one full run is roughly $40, well under their $200/month free credit.
+  # One run is usually enough - 'discover' accumulates place links across runs.
+  # To shrink spend: remove cities, cut templates, or drop max_pages to 1.
   query_templates:
     - "{sector} recruitment agency in {city}"
-  cities: [Birmingham, Solihull, Sutton Coldfield, Wolverhampton, Walsall]
+    - "{sector} staffing agency in {city}"
+    - "{sector} employment agency in {city}"
+  cities: [
+    # Greater London + South East
+    London, Croydon, Romford, Reading, Slough, Brighton, Southampton, Portsmouth,
+    # Midlands
+    Birmingham, Wolverhampton, Coventry, Leicester, Nottingham, Derby, Stoke-on-Trent,
+    # North West
+    Manchester, Liverpool, Preston, Bolton, Oldham, Warrington,
+    # Yorkshire & North East
+    Leeds, Sheffield, Bradford, Hull, Newcastle upon Tyne, Sunderland, Middlesbrough,
+    # East & South West
+    Peterborough, Cambridge, Norwich, Bristol, Plymouth,
+    # Scotland, Wales, Northern Ireland
+    Glasgow, Edinburgh, Cardiff, Swansea, Belfast,
+  ]
   sectors: [security, cleaning, construction, hospitality, warehouse, education]
-  max_pages_per_query: 1     # 20 results per page
+  max_pages_per_query: 2     # 20 results per page
 
 matching:
   name_threshold: 90         # fuzzy score to accept on name alone
